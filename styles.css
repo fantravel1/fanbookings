@@ -283,6 +283,16 @@ img {
     color: var(--text-dark);
 }
 
+.section-subtitle {
+    text-align: center;
+    font-size: 1.125rem;
+    color: var(--text-light);
+    margin-bottom: var(--spacing-2xl);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .services-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -472,6 +482,68 @@ img {
 @media (min-width: 1024px) {
     .coverage-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Authority Section (SEO/AEO) */
+.authority {
+    padding: var(--spacing-2xl) var(--spacing-md);
+    background: var(--bg-white);
+}
+
+.authority-item {
+    margin-bottom: var(--spacing-2xl);
+    padding-bottom: var(--spacing-2xl);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.authority-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.authority-item h3 {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-md);
+    line-height: 1.4;
+}
+
+.authority-item p {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-light);
+}
+
+.feature-list {
+    list-style: none;
+    margin: var(--spacing-lg) 0;
+}
+
+.feature-list li {
+    padding: var(--spacing-md) 0;
+    padding-left: var(--spacing-lg);
+    position: relative;
+    color: var(--text-light);
+    line-height: 1.8;
+}
+
+.feature-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--secondary-color);
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.feature-list li strong {
+    color: var(--text-dark);
+}
+
+@media (min-width: 768px) {
+    .authority-item {
+        padding-left: var(--spacing-lg);
+        padding-right: var(--spacing-lg);
     }
 }
 
