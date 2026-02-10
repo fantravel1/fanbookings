@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /coming-soon.html
+Allow: /styles.css
+Allow: /script.js
+Disallow: /admin/
+Disallow: /private/
+Disallow: /*?*
+Crawl-delay: 1
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+Sitemap: https://fanbookings.com/sitemap.xml
