@@ -1,202 +1,241 @@
 /**
  * FanBookings.com - Main Script
- * Minimal JS for smooth interactions while maintaining Core Web Vitals
+ * Scroll animations, hamburger menu, animated counters, accordion, and interactions
  */
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    initializeSmoothScrolling();
-    initializeNavigation();
-    initializeLazyLoading();
+document.addEventListener('DOMContentLoaded', function () {
+    initScrollAnimations();
+    initNavigation();
+    initHamburgerMenu();
+    initAccordion();
+    initAnimatedCounters();
+    initScrollToTop();
+    initSmoothScrolling();
+    initLinkPrefetch();
 });
 
 /**
- * Smooth scroll to anchor links
+ * Scroll-triggered animations using IntersectionObserver
  */
-function initializeSmoothScrolling() {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            if (href !== '#' && document.querySelector(href)) {
-                e.preventDefault();
-                const targetElement = document.querySelector(href);
-                targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+function initScrollAnimations() {
+    var elements = document.querySelectorAll('.animate-on-scroll');
+    if (!elements.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+        elements.forEach(function (el) { el.classList.add('visible'); });
+        return;
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
             }
         });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    elements.forEach(function (el) { observer.observe(el); });
+}
+
+/**
+ * Navbar scroll behavior
+ */
+function initNavigation() {
+    var navbar = document.querySelector('.navbar');
+    if (!navbar) return;
+
+    var scrollHandler = function () {
+        if (window.scrollY > 20) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    };
+
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+    scrollHandler();
+}
+
+/**
+ * Mobile hamburger menu toggle
+ */
+function initHamburgerMenu() {
+    var hamburger = document.getElementById('hamburger');
+    var navMenu = document.getElementById('nav-menu');
+    if (!hamburger || !navMenu) return;
+
+    hamburger.addEventListener('click', function () {
+        var isOpen = navMenu.classList.toggle('open');
+        hamburger.classList.toggle('active');
+        hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    });
+
+    // Close menu when a link is clicked
+    navMenu.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            navMenu.classList.remove('open');
+            hamburger.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+        });
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && navMenu.classList.contains('open')) {
+            navMenu.classList.remove('open');
+            hamburger.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+            hamburger.focus();
+        }
     });
 }
 
 /**
- * Mobile navigation handling
+ * Accordion (authority section)
  */
-function initializeNavigation() {
-    const navbar = document.querySelector('.navbar');
-    let lastScrollTop = 0;
+function initAccordion() {
+    var triggers = document.querySelectorAll('.accordion-trigger');
+    triggers.forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+            var expanded = this.getAttribute('aria-expanded') === 'true';
+            var content = this.nextElementSibling;
 
-    window.addEventListener('scroll', function() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-        if (scrollTop > lastScrollTop && scrollTop > 100) {
-            // Scrolling down
-            navbar.style.boxShadow = 'var(--shadow-md)';
-        } else {
-            // Scrolling up
-            navbar.style.boxShadow = 'var(--shadow-sm)';
-        }
-
-        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-    }, false);
-}
-
-/**
- * Native lazy loading enhancement for older browsers
- */
-function initializeLazyLoading() {
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-
-                    // Image is already loading with native lazy loading
-                    img.addEventListener('load', function() {
-                        img.classList.add('loaded');
-                    });
-
-                    observer.unobserve(img);
+            // Close all other accordions
+            triggers.forEach(function (other) {
+                if (other !== trigger) {
+                    other.setAttribute('aria-expanded', 'false');
+                    other.nextElementSibling.style.maxHeight = null;
                 }
             });
-        });
 
-        document.querySelectorAll('img[loading="lazy"]').forEach(img => {
-            imageObserver.observe(img);
-        });
-    }
-}
-
-/**
- * Prefetch links on hover for better performance
- */
-document.addEventListener('mouseover', function(event) {
-    const link = event.target.closest('a[href]:not([href^="#"])');
-    if (link && link.hostname === window.location.hostname) {
-        const prefetchLink = document.createElement('link');
-        prefetchLink.rel = 'prefetch';
-        prefetchLink.href = link.href;
-        document.head.appendChild(prefetchLink);
-    }
-}, true);
-
-/**
- * Scroll to top button functionality
- */
-function addScrollToTopButton() {
-    const scrollButton = document.createElement('button');
-    scrollButton.innerHTML = '↑';
-    scrollButton.className = 'scroll-to-top';
-    scrollButton.setAttribute('aria-label', 'Scroll to top');
-    scrollButton.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 50px;
-        height: 50px;
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        cursor: pointer;
-        display: none;
-        font-size: 24px;
-        font-weight: bold;
-        z-index: 99;
-        opacity: 0.8;
-        transition: all 0.3s ease;
-    `;
-
-    document.body.appendChild(scrollButton);
-
-    window.addEventListener('scroll', function() {
-        if (window.pageYOffset > 300) {
-            scrollButton.style.display = 'block';
-        } else {
-            scrollButton.style.display = 'none';
-        }
-    });
-
-    scrollButton.addEventListener('click', function() {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    });
-
-    scrollButton.addEventListener('mouseover', function() {
-        this.style.opacity = '1';
-    });
-
-    scrollButton.addEventListener('mouseout', function() {
-        this.style.opacity = '0.8';
-    });
-}
-
-addScrollToTopButton();
-
-/**
- * Performance monitoring
- */
-if (window.performance && window.performance.timing) {
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            const perfData = window.performance.timing;
-            const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
-
-            // Log performance metrics for monitoring
-            console.log('Page load time: ' + pageLoadTime + 'ms');
-
-            // Send to analytics if needed
-            if (window.sendBeacon) {
-                const beacon = {
-                    type: 'performance',
-                    loadTime: pageLoadTime,
-                    timestamp: new Date().toISOString()
-                };
-                // navigator.sendBeacon('/api/metrics', JSON.stringify(beacon));
+            // Toggle current
+            this.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            if (expanded) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
             }
-        }, 0);
+        });
     });
 }
 
 /**
- * Service Worker registration for PWA support
+ * Animated number counters
  */
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        // Uncomment when service worker is ready
-        // navigator.serviceWorker.register('/sw.js').catch(function(err) {
-        //     console.log('ServiceWorker registration failed: ', err);
-        // });
-    });
+function initAnimatedCounters() {
+    var counters = document.querySelectorAll('.stat-number[data-target]');
+    if (!counters.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+        counters.forEach(function (counter) {
+            counter.textContent = counter.getAttribute('data-target');
+        });
+        return;
+    }
+
+    var animated = new Set();
+
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting && !animated.has(entry.target)) {
+                animated.add(entry.target);
+                animateCounter(entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    counters.forEach(function (counter) { observer.observe(counter); });
 }
 
-/**
- * Prevent layout shift for images
- */
-window.addEventListener('load', function() {
-    document.querySelectorAll('img').forEach(img => {
-        if (!img.width || !img.height) {
-            img.addEventListener('load', function() {
-                this.dataset.loaded = 'true';
-            });
+function animateCounter(el) {
+    var target = parseInt(el.getAttribute('data-target'), 10);
+    var duration = 2000;
+    var startTime = null;
+
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+
+        // Ease out cubic
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var current = Math.round(eased * target);
+
+        el.textContent = current;
+
+        if (progress < 1) {
+            requestAnimationFrame(step);
         }
-    });
-});
+    }
+
+    requestAnimationFrame(step);
+}
 
 /**
- * Analytics tracking
+ * Scroll-to-top button
+ */
+function initScrollToTop() {
+    var button = document.createElement('button');
+    button.className = 'scroll-to-top';
+    button.setAttribute('aria-label', 'Scroll to top');
+    button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
+    document.body.appendChild(button);
+
+    window.addEventListener('scroll', function () {
+        if (window.scrollY > 400) {
+            button.classList.add('visible');
+        } else {
+            button.classList.remove('visible');
+        }
+    }, { passive: true });
+
+    button.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
+
+/**
+ * Smooth scroll for anchor links
+ */
+function initSmoothScrolling() {
+    document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+        anchor.addEventListener('click', function (e) {
+            var href = this.getAttribute('href');
+            if (href !== '#') {
+                var target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
+    });
+}
+
+/**
+ * Prefetch links on hover for faster navigation
+ */
+function initLinkPrefetch() {
+    var prefetched = new Set();
+
+    document.addEventListener('mouseover', function (e) {
+        var link = e.target.closest('a[href]:not([href^="#"])');
+        if (link && link.hostname === window.location.hostname && !prefetched.has(link.href)) {
+            prefetched.add(link.href);
+            var prefetchLink = document.createElement('link');
+            prefetchLink.rel = 'prefetch';
+            prefetchLink.href = link.href;
+            document.head.appendChild(prefetchLink);
+        }
+    }, true);
+}
+
+/**
+ * Analytics tracking (non-blocking)
  */
 function trackEvent(eventName, eventData) {
     if (window.gtag) {
@@ -204,18 +243,12 @@ function trackEvent(eventName, eventData) {
     }
 }
 
-// Track page views
-document.addEventListener('click', function(event) {
-    const link = event.target.closest('a[href]');
-    if (link && !link.target) {
-        const href = link.getAttribute('href');
+document.addEventListener('click', function (e) {
+    var link = e.target.closest('a[href]');
+    if (link) {
+        var href = link.getAttribute('href');
         if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-            trackEvent('link_click', {
-                link_url: href,
-                link_text: link.textContent
-            });
+            trackEvent('link_click', { link_url: href, link_text: link.textContent.trim() });
         }
     }
 });
-
-console.log('FanBookings.com loaded successfully');
